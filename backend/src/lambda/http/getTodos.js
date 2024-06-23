@@ -8,6 +8,7 @@ import { getUserId } from "../utils.mjs";
 const dynamoDbClient = DynamoDBDocument.from(new DynamoDB());
 
 const todosTable = process.env.TODOS_TABLE;
+const todosUserIdIndex = process.env.TODOS_USER_ID_INDEX;
 
 export const handler = middy()
   .use(httpErrorHandler())
@@ -21,6 +22,7 @@ export const handler = middy()
 
     const result = await dynamoDbClient.query({
       TableName: todosTable,
+      IndexName: todosUserIdIndex,
       KeyConditionExpression: "userId = :userId",
       ExpressionAttributeValues: {
         ":userId": userId,
