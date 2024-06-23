@@ -3,10 +3,12 @@ import { DynamoDBDocument } from "@aws-sdk/lib-dynamodb";
 import middy from "@middy/core";
 import httpCors from "@middy/http-cors";
 import httpErrorHandler from "@middy/http-error-handler";
+import AWSXRay from 'aws-xray-sdk-core';
 import { createLogger } from "../../utils/logger.mjs";
 import { getUserId } from "../utils.mjs";
 
-const dynamoDbClient = DynamoDBDocument.from(new DynamoDB());
+const dynamodb = AWSXRay.captureAWSv3Client(new DynamoDB());
+const dynamoDbClient = DynamoDBDocument.from(dynamodb);
 
 const todosTable = process.env.TODOS_TABLE;
 const todosCreatedAtIndex = process.env.TODOS_CREATED_AT_INDEX;
