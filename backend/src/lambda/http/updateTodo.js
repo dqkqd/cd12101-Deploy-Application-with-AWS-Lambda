@@ -30,7 +30,10 @@ export const handler = middy()
     await dynamoDbClient.update({
       TableName: todosTable,
       Key: { userId, todoId },
-      UpdateExpression: "SET name = :name, dueDate = :dueDate, done = :done",
+      UpdateExpression: "SET #n = :name, dueDate = :dueDate, done = :done",
+      ExpressionAttributeNames: {
+        "#n": "name"
+      },
       ExpressionAttributeValues: {
         ":name": updatedTodo.name,
         ":dueDate": updatedTodo.dueDate,
