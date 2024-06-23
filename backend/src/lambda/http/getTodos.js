@@ -9,7 +9,7 @@ import { getUserId } from "../utils.mjs";
 const dynamoDbClient = DynamoDBDocument.from(new DynamoDB());
 
 const todosTable = process.env.TODOS_TABLE;
-const todosUserIdIndex = process.env.TODOS_USER_ID_INDEX;
+const todosCreatedAtIndex = process.env.TODOS_CREATED_AT_INDEX;
 
 const logger = createLogger("getTodos");
 
@@ -27,7 +27,7 @@ export const handler = middy()
 
     const result = await dynamoDbClient.query({
       TableName: todosTable,
-      IndexName: todosUserIdIndex,
+      IndexName: todosCreatedAtIndex,
       KeyConditionExpression: "userId = :userId",
       ExpressionAttributeValues: {
         ":userId": userId,

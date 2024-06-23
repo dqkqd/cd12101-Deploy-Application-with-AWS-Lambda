@@ -4,6 +4,7 @@ import middy from "@middy/core";
 import httpCors from "@middy/http-cors";
 import httpErrorHandler from "@middy/http-error-handler";
 import { createLogger } from "../../utils/logger.mjs";
+import { getUserId } from "../utils.mjs";
 
 const dynamoDbClient = DynamoDBDocument.from(new DynamoDB());
 
@@ -19,14 +20,16 @@ export const handler = middy()
     })
   )
   .handler(async (event) => {
+    const userId = getUserId(event);
     const todoId = event.pathParameters.todoId;
+
     const updatedTodo = JSON.parse(event.body);
 
     logger.info(`Update todo: ${todoId}, done: ${event.body}`);
 
     await dynamoDbClient.update({
       TableName: todosTable,
-      Key: todoId,
+      Key: { userId, todoId },
       UpdateExpression: "SET name = :name, dueDate = :dueDate, done = :done",
       ExpressionAttributeValues: {
         ":name": updatedTodo.name,
