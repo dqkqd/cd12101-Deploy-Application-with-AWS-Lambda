@@ -10,6 +10,7 @@ import { getUserId } from "../utils.mjs";
 const dynamoDbClient = DynamoDBDocument.from(new DynamoDB());
 
 const todosTable = process.env.TODOS_TABLE;
+const bucketName = process.env.TODOS_IMAGE_S3_BUCKET;
 
 const logger = createLogger("createTodo");
 
@@ -31,6 +32,7 @@ export const handler = middy()
     const newTodo = {
       todoId,
       userId,
+      attachmentUrl: `https://${bucketName}.s3.amazonaws.com/${todoId}`,
       createdAt: new Date().toISOString(),
       done: false,
       ...parsedTodo,
