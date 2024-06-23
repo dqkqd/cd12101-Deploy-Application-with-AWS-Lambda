@@ -15,6 +15,8 @@ provider:
   environment:
     TODOS_TABLE: Todos-Sun20242306-${self:provider.stage}
     TODOS_CREATED_AT_INDEX: TodosCreatedAtIndex
+    TODOS_IMAGE_S3_BUCKET: todos-sun20242306-${self:provider.stage}
+    SIGNED_URL_EXPIRATION: 300
 
 functions:
 
@@ -87,13 +89,19 @@ functions:
           - dynamodb:DeleteItem
         Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}
 
-  # TODO: Configure this function
   GenerateUploadUrl:
     handler: src/lambda/http/generateUploadUrl.handler
     events:
       - http:
           method: post
+          authorizer: Auth
           path: todos/{todoId}/attachment
+          cors: true
+    iamRoleStatements:
+      - Effect: Allow
+        Action:
+          - s3:PutObject
+        Resource: arn:aws:s3:::${self:provider.environment.TODOS_IMAGE_S3_BUCKET}/*
 
 resources:
   Resources:
@@ -123,3 +131,39 @@ resources:
                 KeyType: RANGE
             Projection:
               ProjectionType: ALL # What attributes will be copied to an index
+
+    TodosImageBucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: ${self:provider.environment.TODOS_IMAGE_S3_BUCKET}
+        PublicAccessBlockConfiguration:
+          BlockPublicPolicy: false
+          RestrictPublicBuckets: false
+        CorsConfiguration:
+          CorsRules:
+            -
+              AllowedOrigins:
+                - '*'
+              AllowedHeaders:
+                - '*'
+              AllowedMethods:
+                - GET
+                - PUT
+                - POST
+                - DELETE
+                - HEAD
+              MaxAge: 3000
+
+    BucketPolicy:
+      Type: AWS::S3::BucketPolicy
+      Properties:
+        PolicyDocument:
+          Id: MyPolicy
+          Version: "2012-10-17"
+          Statement:
+            - Sid: PublicReadForGetBucketObjects
+              Effect: Allow
+              Principal: '*'
+              Action: 's3:GetObject'
+              Resource: 'arn:aws:s3:::${self:provider.environment.TODOS_IMAGE_S3_BUCKET}/*'
+        Bucket: !Ref TodosImageBucket
