@@ -39,13 +39,17 @@ functions:
           - dynamodb:Query
         Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}/index/${self:provider.environment.TODOS_USER_ID_INDEX}
 
-  # TODO: Configure this function
   CreateTodo:
     handler: src/lambda/http/createTodo.handler
     events:
       - http:
           method: post
+          authorizer: Auth
           path: todos
+          cors: true
+          request:
+            schemas:
+              application/json: ${file(models/create-todo-request.json)}
 
   # TODO: Configure this function
   UpdateTodo:
